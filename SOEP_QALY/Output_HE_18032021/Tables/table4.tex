@@ -1,0 +1,53 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{7}{lllllll}}
+\hline\hline
+                    &\multicolumn{2}{c}{\textbf{Baseline}}      &\multicolumn{2}{c}{\textbf{Without Outliers}}&\multicolumn{2}{c}{\textbf{Log income}}    &\multicolumn{1}{c}{\textbf{Piecewise}}\\\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}
+                    &\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}\\
+\hline
+\\ Income in 1000's &        0.05\sym{***}&        0.10\sym{***}&        0.03\sym{***}&        0.10\sym{***}&                     &                     &                     \\
+                    &      (0.01)         &      (0.03)         &      (0.01)         &      (0.03)         &                     &                     &                     \\
+[1em]
+Income in 1000's $(t-1)$&        0.01         &        0.04         &        0.01\sym{***}&        0.04         &                     &                     &                     \\
+                    &      (0.01)         &      (0.03)         &      (0.00)         &      (0.03)         &                     &                     &                     \\
+[1em]
+SF-6D utility       &        3.12\sym{***}&        3.12\sym{***}&        3.12\sym{***}&        3.12\sym{***}&        3.18\sym{***}&        3.16\sym{***}&        3.18\sym{***}\\
+                    &      (0.06)         &      (0.05)         &      (0.06)         &      (0.06)         &      (0.05)         &      (0.05)         &      (0.05)         \\
+[1em]
+SF-6D utility $(t-1)$&        0.10\sym{*}  &        0.10\sym{*}  &        0.10\sym{*}  &        0.10\sym{*}  &                     &                     &                     \\
+                    &      (0.06)         &      (0.05)         &      (0.06)         &      (0.06)         &                     &                     &                     \\
+[1em]
+Log income          &                     &                     &                     &                     &        0.24\sym{***}&        0.63\sym{***}&                     \\
+                    &                     &                     &                     &                     &      (0.02)         &      (0.13)         &                     \\
+[1em]
+$1^{st}$ income spline&                     &                     &                     &                     &                     &                     &        0.43\sym{***}\\
+                    &                     &                     &                     &                     &                     &                     &      (0.05)         \\
+[1em]
+$2^{nd}$ income spline&                     &                     &                     &                     &                     &                     &        0.27\sym{***}\\
+                    &                     &                     &                     &                     &                     &                     &      (0.05)         \\
+[1em]
+$3^{rd}$ income spline&                     &                     &                     &                     &                     &                     &        0.11\sym{***}\\
+                    &                     &                     &                     &                     &                     &                     &      (0.02)         \\
+[1em]
+$4^{th}$ income spline&                     &                     &                     &                     &                     &                     &        0.01         \\
+                    &                     &                     &                     &                     &                     &                     &      (0.01)         \\
+\hline
+\\ \textbf{Model statistics}&                     &                     &                     &                     &                     &                     &                     \\
+\hline \\ Cragg-Donald&                     &     1,863.7         &                     &       825.8         &                     &     1,329.9         &                     \\
+Anderson            &                     &     3,642.0         &                     &     1,529.4         &                     &     1,278.2         &                     \\
+Endogeneity test    &                     &        10.0         &                     &        12.9         &                     &         9.7         &                     \\
+\\ BIC              &     540,755         &     540,995         &     540,801         &     541,306         &     540,506         &     541,501         &     540,448         \\
+Observations        &     186,902         &     186,902         &     186,906         &     186,906         &     186,902         &     186,902         &     186,902         \\
+\hline \\ \textbf{CIV in \EUR{}}&      58,533         &      22,717         &      82,484         &      22,782         &     153,877         &      81,649         &      97,486         \\
+w/o $4^{th}$ spline &                     &                     &                     &                     &                     &                     &      19,515         \\
+Spline 1 only       &                     &                     &                     &                     &                     &                     &       7,347         \\
+Spline 2 only       &                     &                     &                     &                     &                     &                     &      11,686         \\
+Spline 3 only       &                     &                     &                     &                     &                     &                     &      29,548         \\
+Spline 4 only       &                     &                     &                     &                     &                     &                     &     409,810         \\
+\\ \textbf{Observations} \\ Spline 1&                     &                     &                     &                     &                     &                     &      37,537         \\
+Spline 2            &                     &                     &                     &                     &                     &                     &      37,349         \\
+Spline 3            &                     &                     &                     &                     &                     &                     &      74,678         \\
+Spline 4            &                     &                     &                     &                     &                     &                     &      37,338         \\
+\hline\hline
+\end{tabular}
+}

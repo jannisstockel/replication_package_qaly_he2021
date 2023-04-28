@@ -1,0 +1,29 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{4}{cccc}}
+\hline\hline
+                    &\multicolumn{2}{c}{\textbf{UK Tariff}}     &\multicolumn{2}{c}{\textbf{Dutch Tariff}}  \\\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+                    &\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}\\
+\hline
+\\ Income in 1000's &        0.05\sym{***}&        0.10\sym{***}&        0.05\sym{***}&        0.09\sym{***}\\
+                    &      (0.01)         &      (0.03)         &      (0.01)         &      (0.03)         \\
+[1em]
+Income in 1000's $(t-1)$&        0.01         &        0.04         &        0.01         &        0.05\sym{*}  \\
+                    &      (0.01)         &      (0.03)         &      (0.01)         &      (0.03)         \\
+[1em]
+SF-6D utility       &        3.12\sym{***}&        3.12\sym{***}&        1.78\sym{***}&        1.78\sym{***}\\
+                    &      (0.06)         &      (0.05)         &      (0.03)         &      (0.03)         \\
+[1em]
+SF-6D utility $(t-1)$&        0.10\sym{*}  &        0.10\sym{*}  &        0.05         &        0.05         \\
+                    &      (0.06)         &      (0.05)         &      (0.03)         &      (0.03)         \\
+\hline
+\\ \textbf{Model statistics}&                     &                     &                     &                     \\
+\hline \\ Cragg-Donald&                     &     1,863.7         &                     &       907.1         \\
+Anderson            &                     &     3,642.0         &                     &     1,671.4         \\
+Endogeneity test    &                     &        10.0         &                     &         9.4         \\
+\\ BIC              &     540,755         &     540,995         &     538,297         &     538,523         \\
+Observations        &     186,902         &     186,902         &     186,902         &     186,902         \\
+\hline \\ \textbf{CIV in \EUR{}}&      58,533         &      22,717         &      32,534         &      13,054         \\
+\hline\hline
+\end{tabular}
+}

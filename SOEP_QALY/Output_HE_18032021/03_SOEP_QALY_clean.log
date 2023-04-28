@@ -1,0 +1,470 @@
+------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\sebbs\surfdrive\Shared\SOEP _DataPreparation\SOEP_QALY\Output/03_SOEP_QALY_clean.log
+  log type:  text
+ opened on:  18 Mar 2021, 15:51:12
+
+. *===============================================================================
+. * BEGIN PROGRAM
+. *===============================================================================
+. 
+. * Load in merged dataset of raw SOEP data extraction
+. use             "./Data_panel/SOEP_merged_raw.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. di in red "Data conditioning: Total number of individual-year observations: 434,002"
+Data conditioning: Total number of individual-year observations: 434,002
+
+. 
+. * Before dropping any household-members generate count variable for later weighting
+. sort hid syear
+
+. by hid syear: gen hhresp=_N
+
+. 
+. *===============================================================================
+. * Clean income 
+. *===============================================================================
+. 
+. * -1 and -3 values in hhnetto indicating not availble
+. drop if hhnetto <=0
+(22,152 observations deleted)
+
+. 
+. *===============================================================================
+. * Clean Background Variables: Sex, Age, Disability, Marital and Labor Market Participation
+. *===============================================================================
+. 
+. * Sex + Imputation and cleaning out of contradictory responses 
+. sort            pid syear
+
+. 
+. replace sex     =       0       if      sex==-5 | sex==.
+(19,640 real changes made)
+
+.  
+. * Generating Value containing highest reported value for sex 
+. by pid: egen sex_max=max(sex)
+
+. 
+. * Dropping observation never stating sex information (all . or -5)
+. drop if sex_max==0
+(1,754 observations deleted)
+
+. drop sex_max
+
+. replace sex=1.75 if sex==0 // value chosen, otherwise min-> missing
+variable sex was byte now float
+(17,886 real changes made)
+
+. 
+. by pid: egen sex_min=min(sex)
+
+. by pid: egen sex_max=max(sex)
+
+. 
+. replace sex = 1         if sex_min==1           & sex_max==1.75 
+(7,196 real changes made)
+
+. replace sex = 2         if sex_min==1.75        & sex_max==2 
+(10,680 real changes made)
+
+. 
+. drop if sex_min==1 & sex_max==2  // Drop individuals giving contradictory answers
+(131 observations deleted)
+
+. 
+. drop sex_min sex_max
+
+. 
+. * Birthyear 
+. replace birthyear=0     if birthyear<0 | birthyear==.
+(30,749 real changes made)
+
+. 
+. by pid: egen min_b=min(birthyear)
+
+. by pid: egen max_b=max(birthyear)
+
+. 
+. drop if max_b==0
+(6,751 observations deleted)
+
+. replace birthyear=max_b if birthyear==0
+(23,998 real changes made)
+
+. drop min_b max_b 
+
+. 
+. by pid: egen min_b=min(birthyear)
+
+. by pid: egen max_b=max(birthyear)
+
+. 
+. gen diff = max_b - min_b 
+
+. drop if diff>2 // Remove individuals with large reporting discrepancy
+(458 observations deleted)
+
+. 
+. by pid: egen mean_b=mean(birthyear)
+
+. replace mean_b=round(mean_b, 1)
+(830 real changes made)
+
+. 
+. replace birthyear=mean_b 
+(328 real changes made)
+
+. 
+. * Age 
+. gen age = syear - birthyear
+
+. 
+. * Disability status and level in percent
+. replace disabled=0      if disabled<1 | disabled==.
+(14,871 real changes made)
+
+. by pid: egen max_d=max(disabled)
+
+. 
+. drop if max_d==0        
+(13,215 observations deleted)
+
+. drop max_d 
+
+. replace disabled=1.75 if disabled==0
+variable disabled was byte now float
+(1,656 real changes made)
+
+.         
+. * Remove if missing disability percentage       
+. drop    if disabled_percent==-3 | disabled_percent==-1 | disabled_percent==.
+(1,035 observations deleted)
+
+. 
+. * General Self-Assessed Health, 5-Point-Scale at present
+. drop    if health       <       0
+(482 observations deleted)
+
+. 
+. * Life satisfaction
+. drop    if lifesat<0 | lifesat==.
+(4,193 observations deleted)
+
+. 
+. * Marital Status
+. drop    if marstat<=0 | marstat==.
+(1,741 observations deleted)
+
+. 
+. * Labor Force Status
+. drop    if econact<=0 | econact==.
+(1 observation deleted)
+
+. 
+. * Educational Attainment
+. replace         pgpsbilo        =       -2      if pgpsbilo==-5
+(192,277 real changes made)
+
+. replace         pgpsbila        =       -2      if pgpsbila==-5
+(1,081 real changes made)
+
+. 
+. foreach x of varlist pgpsbil* pgpbbil* {
+  2.         
+.         drop if `x'==-1 | `x'<-2 | `x'==.
+  3.         
+. } 
+(7,376 observations deleted)
+(31 observations deleted)
+(190 observations deleted)
+(343 observations deleted)
+(1,318 observations deleted)
+(1,233 observations deleted)
+(26,273 observations deleted)
+(209 observations deleted)
+
+. 
+. *===============================================================================
+. * Clean tenure and working hours
+. *===============================================================================
+. * Generate tenure
+. 
+. gen tenure = interview_date-jobsince
+(140,527 missing values generated)
+
+. replace tenure = 0 if tenure <0
+(18 real changes made)
+
+. replace tenure = tenure/365 
+(204,547 real changes made)
+
+. recode tenure (.=0) if econact !=11 & econact !=12 // I am not sure whether this is ok to do, everyone who does not wo
+> rk gets a tenure of 0 and not missing
+(tenure: 136112 changes made)
+
+. 
+. tab econact if tenure ==. //1402 observations with missing tenure who work
+
+               Labor Force Status |      Freq.     Percent        Cum.
+----------------------------------+-----------------------------------
+                     [11] Working |      2,873       65.07       65.07
+  [12] Working but NW past 7 days |      1,542       34.93      100.00
+----------------------------------+-----------------------------------
+                            Total |      4,415      100.00
+
+. 
+. drop if tenure ==. & econact ==11 
+(2,873 observations deleted)
+
+. drop if tenure ==. & econact ==12
+(1,542 observations deleted)
+
+. drop if wrkhrs ==. & econact ==11 
+(0 observations deleted)
+
+. drop if wrkhrs ==. & econact ==12 
+(0 observations deleted)
+
+. 
+. *===============================================================================
+. * Clean Leisure Capacity Variables 
+. *===============================================================================
+. 
+. * Drop if workhours not stated but individual not outside of employment
+. drop    if wrkhrs==-3 | wrkhrs==-1
+(4,255 observations deleted)
+
+. 
+. drop    if hobby_hours<0
+(9,729 observations deleted)
+
+. 
+. *===============================================================================
+. * Clean data for predicted labour market income
+. *===============================================================================
+. 
+. xtset pid syear
+       panel variable:  pid (unbalanced)
+        time variable:  syear, 2002 to 2018, but with gaps
+                delta:  1 unit
+
+. 
+. *-------------------------------------------------------------------------------
+. * Imputing industry occupation if not available but was available before/after
+. *-------------------------------------------------------------------------------
+. 
+. gen occupation2 = occupation
+(215,804 missing values generated)
+
+. 
+. * Imputation previous year industry and occupation if job was not changed (newwork_lastyear)
+. replace occupation2 = L.occupation if occupation ==. & newwork_lastyear ==2
+(63,010 real changes made)
+
+. 
+. * Imputation of 2nd year if job not changed
+. replace occupation2 = L.occupation2 if occupation ==. & newwork_lastyear ==2
+(6,112 real changes made)
+
+. 
+. * Imputation of following year industry occupation if job was not changed
+. replace occupation2 = F.occupation2 if occupation ==. & F.newwork_lastyear ==2
+(14,405 real changes made)
+
+. 
+. gen industry2 = industry
+(222,508 missing values generated)
+
+. 
+. * Imputation previous year industry and occupation if job was not changed (newwork_lastyear)
+. replace industry2 = L.industry if industry ==. & newwork_lastyear ==2 & L.industry !=.
+(60,513 real changes made)
+
+. 
+. * Imputation of 2nd year if job not changed
+. replace industry2 = L.industry2 if industry ==. & newwork_lastyear ==2 
+(7,558 real changes made)
+
+. 
+. * Imputation of following year industry occupation if job was not changed
+. replace industry2 = F.industry2 if industry ==. & F.newwork_lastyear ==2 
+(14,593 real changes made)
+
+. 
+. * Generate indicator flagging non available prediction variables
+. gen             labour_inc_no_pred =0
+
+. recode  labour_inc_no_pred (0=1) if (industry2 ==. | occupation2 ==. ) & net_labour_income !=-2 & net_labour_income !=
+> 0
+(labour_inc_no_pred: 15689 changes made)
+
+. tab     labour_inc_no_pred
+
+labour_inc_ |
+    no_pred |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    311,028       95.20       95.20
+          1 |     15,689        4.80      100.00
+------------+-----------------------------------
+      Total |    326,717      100.00
+
+. 
+. * Impute if job was changed but within same industry and occupation 
+. replace industry2 = L.industry2 if labour_inc_no_pred ==1 & L.industry == F.industry & L.occupation == F.occupation & 
+> newwork_lastyear ==2 & net_labour_income !=-2
+(270 real changes made, 270 to missing)
+
+. 
+. replace         occupation2 = L.occupation2 if labour_inc_no_pred ==1 & L.industry == F.industry & L.occupation == F.o
+> ccupation & newwork_lastyear ==2 & net_labour_income !=-2
+(2,257 real changes made, 2,257 to missing)
+
+. 
+. * Remove old variables for industry and occupation
+. drop    industry occupation
+
+. 
+. rename  industry2 industry
+
+. rename  occupation2 occupation
+
+. 
+. 
+. di in red "Data conditioning: Clean control variables: 326,717"
+Data conditioning: Clean control variables: 326,717
+
+. 
+. *-------------------------------------------------------------------------------
+. * Drop observations where predicting labour market incomes not possible
+. *-------------------------------------------------------------------------------
+. gen     employed = 1 if econact == 11 | econact ==12
+(132,619 missing values generated)
+
+. recode  employed (.=0)
+(employed: 132619 changes made)
+
+. 
+. * Drop if individual state they are employed but do not report an income
+. drop    if net_labour_income <=0 & employed ==1
+(995 observations deleted)
+
+. 
+. * Drop if industry or occupation avaialable but not employed
+. drop    if industry !=. & net_labour_income ==-2 & employed  ==0
+(756 observations deleted)
+
+. drop    if occupation !=. & net_labour_income ==-2 & employed  ==0
+(24 observations deleted)
+
+. 
+. * Drop if industry or occupation missing althoug employed and positive income
+. drop if         labour_inc_no_pred
+(15,689 observations deleted)
+
+. 
+. di in red "Data conditioning: Remove working individuals without ind-occ information: 309,253"
+Data conditioning: Remove working individuals without ind-occ information: 309,253
+
+. 
+. *===============================================================================
+. * Clean Health Questionnaire
+. *===============================================================================
+. 
+. di in red       "Preparing Health Utility Imputation"
+Preparing Health Utility Imputation
+
+. 
+. replace         valid   =       0       if valid!=1 // Recode valid SF12 response indicator
+(159,579 real changes made)
+
+. 
+. gen             impyear =       syear*valid // Only years recorded if valid SF12 available
+
+. 
+. * If impyear = 0 (no SF12 available) impyear is replaced by the average of both 
+. * adjacent impyear values which are only the actual reporting year (syear) if and
+. * only if the observation has two adjacent consecutive observations. 
+. by pid:         replace impyear = (impyear[_n-1] + impyear[_n+1])/2 if impyear==0
+(159579 real changes made, 51071 to missing)
+
+. 
+. gen                     imputable       =       (syear==impyear)                
+
+. keep if         imputable       ==      1 // Remove observations with non-imputable SF12 value
+(66,096 observations deleted)
+
+. 
+. di in red "Data conditioning: At least two consecutively observed self-reported SF12: 243,157"
+Data conditioning: At least two consecutively observed self-reported SF12: 243,157
+
+. 
+. *===============================================================================
+. * Conditioning on Observations Spells of at least 3 observations
+. *===============================================================================
+. 
+. * Identifying spells of consecutive runs
+. xtset pid syear
+       panel variable:  pid (unbalanced)
+        time variable:  syear, 2002 to 2018, but with gaps
+                delta:  1 unit
+
+. 
+. tsspell         , fcond(missing(L.syear)) // Creating variables identifying spells, observations within them and spell
+> -ends     
+warning: data contain gaps; see help on tsspell
+
+. 
+. * Sorting according to individual 
+. 
+. sort                    pid _spell              // Sorting by ID and spell-identifier
+
+. 
+. by pid _spell: egen maxrun_spell        =       max(_seq)       //      Cross-wave identifier of maximum spell length
+
+. 
+. keep if maxrun_spell>=3 // Keep only observations within spells of >=3 periods
+(22,799 observations deleted)
+
+. 
+. di in red "Data conditioning: Remove observation not included in consecutive triplets: 220,358"
+Data conditioning: Remove observation not included in consecutive triplets: 220,358
+
+. 
+. *-------------------------------------------------------------------------------
+. * Imputing SF12 
+. *-------------------------------------------------------------------------------
+. 
+. * Impute SF12 values by linear mean between two consecutive SF12 participations 
+. * (2 year difference)
+. replace sf12ind_UK      =       (sf12ind_UK[_n-1]+sf12ind_UK[_n+1])/2   if sf12ind_UK==. & imputable==1
+(93,453 real changes made)
+
+. replace sf12ind_NL = (sf12ind_NL[_n-1]+sf12ind_NL[_n+1])/2              if sf12ind_NL==. & imputable==1
+(93,453 real changes made)
+
+. 
+. *-------------------------------------------------------------------------------
+. * Imputing MCS and PCS for observations within triplet
+. *------------------------------------------------------------------------------- 
+.  
+. replace mcs                     =       (mcs[_n-1]+mcs[_n+1])/2                         if      mcs==. & imputable==1 
+(93,453 real changes made)
+
+. replace pcs                     =       (pcs[_n-1]+pcs[_n+1])/2                         if      pcs==. & imputable==1 
+(93,453 real changes made)
+
+.  
+. drop impyear imputable _spell _seq _end maxrun_spell
+
+. 
+. save "./Data_panel/SOEP_merged_clean.dta", replace
+file ./Data_panel/SOEP_merged_clean.dta saved
+
+. 
+. *===============================================================================
+. * END PROGRAM
+. *===============================================================================
+. capture log close

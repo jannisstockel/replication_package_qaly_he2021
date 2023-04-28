@@ -1,0 +1,1522 @@
+------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\sebbs\surfdrive\Shared\SOEP _DataPreparation\SOEP_QALY\Output/01_00_SOEP_QALY_extract.log
+  log type:  text
+ opened on:  18 Mar 2021, 15:50:14
+
+. *===============================================================================
+. * BEGIN PROGRAM
+. *===============================================================================
+. 
+. *===============================================================================
+. * Extract Variables: Marital Staturs, Economic Activity, Education, Working hours
+. *===============================================================================
+. 
+. * Load in SOEP file on generated individual-level variables
+. use             "./Data_source/pgen.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. di in red       "Extract: Marital Status, Economic Activity & Education"
+Extract: Marital Status, Economic Activity & Education
+
+. 
+. * Marital Status 
+. rename          pgfamstd        marstat
+
+. 
+. * Economic Activity 
+. rename          pglfs           econact
+
+. 
+. * Working hours (actual not contractual) per week
+. rename          pgtatzeit   wrkhrs
+
+. 
+. * Labour income (gross) for instrument
+. rename          pglabgro        gross_labour_income
+
+. 
+. * Labour income (net) for instrument
+. rename          pglabnet        net_labour_income
+
+. 
+. * Employment Details 
+. rename          pgstib          empl_details
+
+. 
+. * Keep only variables of interest
+. keep            pid syear marstat econact wrkhrs pgpsbil* pgpbbil* *_labour_income empl_details
+
+. 
+. * Sort dataset before merge
+. sort            pid syear
+
+. 
+. * Save data extract from SOEP
+. save            "./Data_merge/pgen_ex.dta", replace
+file ./Data_merge/pgen_ex.dta saved
+
+. 
+. *===============================================================================
+. * Extract Variables: Income, disability, age, life satisfaction, smoking behaviour 
+. *===============================================================================
+. 
+. * Load dataset on individual-level survey responses
+. use             "./Data_source/pl.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. di in red       "Extract: Disability, income, age & life satisfaction"
+Extract: Disability, income, age & life satisfaction
+
+. 
+. * Interview date variable
+. gen             intdaty =       syear
+
+. rename  pmonin          intdatm
+
+. rename  ptagin          intdatd 
+
+. gen     interview_date=mdy(intdatm, intdatd, intdaty)
+(19,399 missing values generated)
+
+. format  interview_date %td
+
+. 
+. * Sex
+. rename          pla0009_v2      sex
+
+. 
+. * Life/Health/Leisure Satisfaction
+. rename          plh0182         lifesat
+
+. rename          plh0171         healthsat
+
+. rename          plh0173         jobsat 
+
+. rename          plh0174         hhoccsat
+
+. rename          plh0175         hhincsat
+
+. rename          plh0176         pincsat
+
+. rename          plh0177         accosat
+
+. rename          plh0178         leisuresat
+
+. rename          plh0179         childcaresat
+
+. rename          ple0008         health
+
+. 
+. * Age 
+. rename          ple0010_h       birthyear
+
+. 
+. * Disability
+. rename          ple0040         disabled 
+
+. rename          ple0041         disabled_percent
+
+. 
+. * Smoking behaviour and history 
+. rename          ple0081_h       smoker
+
+. rename          ple0082         smokestrt_age
+
+. rename          ple0084         smokeend_year
+
+. rename          ple0085     smokeend_month
+
+. rename          ple0086_v2  smoke_ncigs
+
+. rename          ple0086_v3  smoke_npipes
+
+. rename          ple0086_v4  smoke_ncigars    
+
+. 
+. * Sleeping hours workday and weekend
+. rename          pli0059         sleephrs_wkday
+
+. rename          pli0060         sleephrs_wkend
+
+. 
+. * Reported Time Use on Regular Weekdays
+. rename          pli0038_h       employ_hours
+
+. rename          pli0040         errands_hours
+
+. rename          pli0043_h       hh_hours
+
+. rename          pli0044_h       children_hours
+
+. rename          pli0047_v1      train_hours
+
+. rename          pli0049_h       rep_hours
+
+. rename          pli0051         hobby_hours
+
+. 
+. * Indicator of reported changed job since last-year's participation
+. rename          plb0031_h       newwork_lastyear
+
+. 
+. * Variable on job tenure
+. gen day_jobstart = 1 // Start of job normalized to 1st day of month (avoid negatives)
+
+. gen jobsince= mdy(plb0035, day_jobstart, plb0036_h) if plb0035 >0 & plb0036_h >0                
+(324,225 missing values generated)
+
+. format  jobsince %td
+
+. 
+. * Sort dataset before merge (ID - Year panel structure)
+. sort            pid syear
+
+. 
+. *===============================================================================
+. * Extract Variables: Industry, occupation
+. *===============================================================================
+. 
+. di in red       "Extract: Industry, occupations"
+Extract: Industry, occupations
+
+. *Summarising NACE industry codes according to Pischke (2011)
+. *Missing 25, 29, 31 intentional according to Pischke
+. 
+. gen industry =.
+(682,447 missing values generated)
+
+. recode industry (.=1) if p_nace>=0 & p_nace <=5         // Agriculture
+(industry: 4355 changes made)
+
+. recode industry (.=2) if p_nace >=10 & p_nace <=14  // Mining
+(industry: 793 changes made)
+
+. recode industry (.=3) if p_nace ==45                            // Construction
+(industry: 14907 changes made)
+
+. recode industry (.=4) if p_nace ==20 | p_nace==36   // Wood
+(industry: 2206 changes made)
+
+. recode industry (.=5) if p_nace ==26                            // Stone/Glass
+(industry: 1191 changes made)
+
+. recode industry (.=6) if p_nace ==27 | p_nace==28       // Metal
+(industry: 10737 changes made)
+
+. recode industry (.=7) if p_nace ==29 | p_nace==30       // Non-electrical machinery
+(industry: 6015 changes made)
+
+. recode industry (.=8) if p_nace ==31 | p_nace==32       // Electronics
+(industry: 5882 changes made)
+
+. recode industry (.=9) if p_nace ==34 | p_nace==35       // Transportation equipment
+(industry: 7409 changes made)
+
+. recode industry (.=10) if p_nace ==33                           // Professional equipment
+(industry: 1675 changes made)
+
+. recode industry (.=11) if p_nace ==15 | p_nace==16      // Food/Tobacco 
+(industry: 4683 changes made)
+
+. recode industry (.=12) if p_nace >=17 & p_nace<=19      // Clothing
+(industry: 2223 changes made)
+
+. recode industry (.=13) if p_nace ==21                           // Paper
+(industry: 819 changes made)
+
+. recode industry (.=14) if p_nace ==22                           // Printing
+(industry: 2714 changes made)
+
+. recode industry (.=15) if p_nace ==24                           // Chemicals
+(industry: 4866 changes made)
+
+. recode industry (.=16) if p_nace ==23 | p_nace==25      // Petroleum/Rubber
+(industry: 1847 changes made)
+
+. recode industry (.=17) if p_nace ==37                           // Other manufacturing
+(industry: 156 changes made)
+
+. recode industry (.=18) if p_nace>=60 & p_nace<=63       // Transportation
+(industry: 8158 changes made)
+
+. recode industry (.=19) if p_nace ==64                           // Communication
+(industry: 3434 changes made)
+
+. recode industry (.=20) if p_nace==40 | p_nace==41 | p_nace==90 // Utilities
+(industry: 3059 changes made)
+
+. recode industry (.=21) if p_nace ==51                           // Wholesale trade
+(industry: 3824 changes made)
+
+. recode industry (.=22) if p_nace==50 | p_nace==52       // Retail trade
+(industry: 23131 changes made)
+
+. recode industry (.=23) if p_nace>=65 & p_nace<=71       // Finance/Insurance
+(industry: 9796 changes made)
+
+. recode industry (.=24) if p_nace>=72 & p_nace<=74       // Business
+(industry: 16690 changes made)
+
+. recode industry (.=26) if p_nace>=95 & p_nace<=97       // Personal/repair
+(industry: 1049 changes made)
+
+. recode industry (.=27) if p_nace ==92                           // Recreational 
+(industry: 3551 changes made)
+
+. recode industry (.=28) if p_nace ==85                           // Health
+(industry: 26493 changes made)
+
+. recode industry (.=30) if p_nace ==80                           // Education
+(industry: 15405 changes made)
+
+. recode industry (.=32) if p_nace==91 | p_nace==93       // Other
+(industry: 4762 changes made)
+
+. recode industry (.=33) if p_nace==75 | p_nace==99       // Public administration
+(industry: 15912 changes made)
+
+. 
+. *in Pischke missing "Gastgewerbe" = "Hospitality"
+. recode industry (.=34) if p_nace ==55                           // Hospitality
+(industry: 7523 changes made)
+
+.                                                   
+. *-------------------------------------------------------------------------------
+. * Recode ISCO-08 to ISCO-88 for Wave 2018
+. *-------------------------------------------------------------------------------
+. 
+. * Uncomment to install iscogen command to transfer coding before running this
+. *ssc    install iscogen
+. 
+. iscogen isco88 = isco88(p_isco08), from(isco08)
+
+    variable name:          isco88
+    variable label:         Recode of p_isco08: isco08 to isco88
+    storage type:           int
+    matched observations:   64635
+    unmatched observations: 617812
+    missing observations:   0
+
+. 
+. replace p_isco88        =       p_isco08        if p_isco08<0 & syear==2018
+(25,715 real changes made)
+
+. replace p_isco88        =       isco88          if p_isco88 == -8       
+(4,591 real changes made)
+
+. 
+. *-------------------------------------------------------------------------------
+. *-------------------------------------------------------------------------------
+. 
+. *Summarising occupation codes according to Pischke(2011)
+. gen occupation =.
+(682,447 missing values generated)
+
+. 
+. * Administrative and managerial occupations
+. recode occupation (.=1) if (p_isco88 >=1000 & p_isco88 <=1319) | (p_isco88 ==2400) | (p_isco88 >=2410 & p_isco88 <=241
+> 9) | (p_isco88 ==2470) | (p_isco88 >=3440 & p_isco88 <=3449)
+(occupation: 24128 changes made)
+
+. * Engineers
+. recode occupation (.=2) if (p_isco88 >=2000 & p_isco88 <=2100) | (p_isco88 >=2140 & p_isco88 <=2149)
+(occupation: 8305 changes made)
+
+. * Math and computer scientists
+. recode occupation (.=3) if (p_isco88 >=2120 & p_isco88 <=2139) 
+(occupation: 2675 changes made)
+
+. * Natural Scientists
+. recode occupation (.=4) if (p_isco88 >=2110 & p_isco88 <=2114) | (p_isco88 >=2210 & p_isco88 <=2213) 
+(occupation: 726 changes made)
+
+. * Health professionals
+. recode occupation (.=5) if (p_isco88 ==2200) | (p_isco88 >=2220 & p_isco88 <=2222)
+(occupation: 2422 changes made)
+
+. * Health treatment occupations
+. recode occupation (.=6) if (p_isco88 >=2223 & p_isco88 <=2230) | (p_isco88 >=3220 & p_isco88 <=3223) | (p_isco88 >=323
+> 0 & p_isco88 <=3232)
+(occupation: 5661 changes made)
+
+. * Post-secondary teachers
+. recode occupation (.=7) if (p_isco88 ==2310)
+(occupation: 1292 changes made)
+
+. * Other teachers
+. recode occupation (.=8) if (p_isco88 ==2300) | (p_isco88 >=2320 & p_isco88 <=2359)
+(occupation: 7842 changes made)
+
+. * Counsellors, librarians, archivists
+. recode occupation (.=9) if (p_isco88 >=2430 & p_isco88 <=2432)
+(occupation: 246 changes made)
+
+. * Social scientists and urban planners
+. recode occupation (.=10) if (p_isco88 >=2440 & p_isco88 <=2445)
+(occupation: 1264 changes made)
+
+. * Social and religious workers
+. recode occupation (.=11) if (p_isco88 ==2446) | (p_isco88 ==2460) | (p_isco88 ==3460) | (p_isco88 ==3480)
+(occupation: 5660 changes made)
+
+. * Lawyers and judges
+. recode occupation (.=12) if (p_isco88 >=2420 & p_isco88 <=2429) 
+(occupation: 1617 changes made)
+
+. * Writers, artists, athletes
+. recode occupation (.=13) if (p_isco88 >=2450 & p_isco88 <=2455) | (p_isco88 >=3470 & p_isco88 <=3478) 
+(occupation: 2802 changes made)
+
+. * Technicians and support occupations
+. recode occupation (.=14) if (p_isco88 >=3000 & p_isco88 <=3213) | (p_isco88 >=3224 & p_isco88 <=3229) 
+(occupation: 13553 changes made)
+
+. * Sales occupations
+. recode occupation (.=15) if (p_isco88 >=3400 & p_isco88 <=3429) | (p_isco88 ==5000) | (p_isco88 >=5200 & p_isco88 <=52
+> 20) 
+(occupation: 19579 changes made)
+
+. * Clerical and administrative support occupations
+. recode occupation (.=16) if (p_isco88 >=3300 & p_isco88 <=3340) | (p_isco88 >=3430 & p_isco88 <=3434) | (p_isco88 >=40
+> 00 & p_isco88 <=4223)
+(occupation: 40067 changes made)
+
+. * Private household workers
+. recode occupation (.=17) if (p_isco88 ==5121) | (p_isco88 ==5131) | (p_isco88 ==5133)
+(occupation: 2686 changes made)
+
+. * Protective service workers
+. recode occupation (.=18) if (p_isco88 ==3450) | (p_isco88 >=5160 & p_isco88 <=5169)
+(occupation: 2934 changes made)
+
+. * Service workers, exc 17 (private hh workers) and 18 (protective service)
+. recode occupation (.=19) if (p_isco88 ==5132) | (p_isco88 >=5100 & p_isco88 <=5120) | (p_isco88 >=5122 & p_isco88 <=51
+> 30) | (p_isco88 >=5139 & p_isco88 <=5149)
+(occupation: 14186 changes made)
+
+. * Farming occupations
+. recode occupation (.=20) if (p_isco88 >=6000 & p_isco88 <=6154)
+(occupation: 3208 changes made)
+
+. * Crafts and repair workers
+. recode occupation (.=21) if (p_isco88 >=7000 & p_isco88 <=7442)
+(occupation: 37185 changes made)
+
+. * Operators and Laborers
+. recode occupation (.=22) if (p_isco88 >=8000 & p_isco88 <=9330)
+(occupation: 37386 changes made)
+
+. 
+. * Keeping reduced variable set for further steps
+. keep            pid hid syear disabled* birthyear sex smoke* sleephrs*  *_hours *sat ///
+>                         jobsince health newwork_lastyear industry occupation interview_date plc0050 plc0051_v2
+
+.         
+. * Save data extract of individual-level survey responses
+. save            "./Data_merge/pl_ex.dta", replace 
+file ./Data_merge/pl_ex.dta saved
+
+. 
+. *===============================================================================
+. * Extract Variables: Household Characteristics - Income, composition, leisure
+. *===============================================================================
+. 
+. * Load generated data on household characteristics
+. use             "./Data_source/hgen.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. di in red       "Extract Household Variables: Income and Composition"
+Extract Household Variables: Income and Composition
+
+. 
+. * Generated Household Income
+. rename          hghinc          hhnetto
+
+. 
+. * Generated Household Types
+. rename          hgtyp1hh        hhtype1
+
+. rename          hgtyp2hh        hhtype2
+
+. 
+. * Bundesländer/States
+. rename          hgnuts1         bula
+
+. 
+. sort            hid syear
+
+. 
+. keep            hid syear hhnetto hhtype* bula
+
+. 
+. save        "./Data_merge/hgen_ex.dta", replace
+file ./Data_merge/hgen_ex.dta saved
+
+. 
+. *===============================================================================
+. * Number of Children in Household - Subdofile
+. *===============================================================================
+. 
+. do                      ./01_01_SOEP_QALY_extract_children.do 
+
+. *===============================================================================
+. /*      
+> Extract: The Value of Health Paper - German SOEP: Children information
+> 
+> Last Edit:      12.03.2021 12:46                        
+>                         
+> Authors:        Sebastian Himmler (himmler@eshpm.eur.nl)
+>                         Jannis Stöckel (stockel@eshpm.eur.nl)
+> 
+> Outline:        This dofile extracts the variables of interest from the differen SOEP
+>                         long-format datasets as released in v35 to construct the number of children 
+>                         living in a given household. 
+>                  
+> Input:          SOEP datasets of cohabiting children (separate by year).
+>                         - skind.dta (2002) to bikind.dta (2018)
+>                         
+> Output:         Datasets with calculated children living in household for all waves
+>                         between 2002 to 2018. 
+>                         - kind_ex.dta 
+> */
+. *===============================================================================
+. 
+. *===============================================================================
+. * BEGIN PROGRAM
+. *===============================================================================
+. 
+. *===============================================================================
+. * Harmonise Variable Naming for Waves BH and BI (2017/2018)
+. *===============================================================================
+. 
+. * Wave BH - 2017
+. use     "./Data_source/Children/unharmonised/bhkind.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. rename  bhk_78_03 bhkgjahr 
+
+. 
+. save    "./Data_source/Children/source/bhkind.dta", replace
+file ./Data_source/Children/source/bhkind.dta saved
+
+. 
+. * Wave BI - 2018
+. use     "./Data_source/Children/unharmonised/bikind.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. rename  bik_79_03 bikgjahr 
+
+. 
+. save    "./Data_source/Children/source/bikind.dta", replace
+file ./Data_source/Children/source/bikind.dta saved
+
+. 
+. *===============================================================================
+. * Calculating Children Composition of Household
+. *===============================================================================
+. 
+. global waves2 "s t u v w x y z ba bb bc bd be bf bg bh bi"
+
+. 
+. foreach x of global waves2  {
+  2. 
+.         use     "./Data_source/Children/source/`x'kind.dta", replace
+  3.                 
+.         * Renaming Variables of Interest        
+.         rename  `x'kgjahr       birthyear
+  4. 
+.         * Generating Age and Indicators
+.         drop if                 birthyear<0
+  5.         gen     age             =       syear - birthyear
+  6.         gen             young   =       (age<14)
+  7.         gen     old             =       (age>=14)
+  8.         
+.         * Counting Children in certain age groups in each houeshold
+.         sort    hid 
+  9.         
+.         by              hid:    egen    young_count     =       sum(young)      
+ 10.         by              hid:    egen    youngt          =       max(young_count)
+ 11.         
+.         by              hid:    egen    old_count       =       sum(old)
+ 12.         by              hid:    egen    oldt            =       max(old_count)
+ 13.         
+.         gen             childrent               =       oldt + youngt   
+ 14.         
+.         by              hid:    keep if _n==1                           // Collaps dataset to 1 per household
+ 15.         
+.         * Reducing Dataset
+.         keep    hid syear oldt youngt childrent
+ 16.         
+.         * Saving New Dataset    
+.         save    "./Data_source/Children/`x'kind_harmonised.dta", replace
+ 17. 
+. }
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(2,407 observations deleted)
+file ./Data_source/Children/skind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(2,252 observations deleted)
+file ./Data_source/Children/tkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(2,066 observations deleted)
+file ./Data_source/Children/ukind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(1,900 observations deleted)
+file ./Data_source/Children/vkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(1,994 observations deleted)
+file ./Data_source/Children/wkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(1,757 observations deleted)
+file ./Data_source/Children/xkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(1,584 observations deleted)
+file ./Data_source/Children/ykind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(3 observations deleted)
+(1,669 observations deleted)
+file ./Data_source/Children/zkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(5,509 observations deleted)
+file ./Data_source/Children/bakind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(6,071 observations deleted)
+file ./Data_source/Children/bbkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(0 observations deleted)
+(5,637 observations deleted)
+file ./Data_source/Children/bckind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(1 observation deleted)
+(6,103 observations deleted)
+file ./Data_source/Children/bdkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(5 observations deleted)
+(5,092 observations deleted)
+file ./Data_source/Children/bekind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(5 observations deleted)
+(4,862 observations deleted)
+file ./Data_source/Children/bfkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(12 observations deleted)
+(7,580 observations deleted)
+file ./Data_source/Children/bgkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(305 observations deleted)
+(7,873 observations deleted)
+file ./Data_source/Children/bhkind_harmonised.dta saved
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+(280 observations deleted)
+(6,935 observations deleted)
+file ./Data_source/Children/bikind_harmonised.dta saved
+
+. 
+. *===============================================================================
+. *       Merging Extraction of Children per Household into Long-Format File
+. *===============================================================================
+. 
+. use             "./Data_source/Children/skind_harmonised.dta", replace
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. global waves3   "t u v w x y z ba bb bc bd be bf bg bh bi"
+
+. 
+. foreach x of global waves3 {
+  2. 
+.         append using    "./Data_source/Children/`x'kind_harmonised.dta"
+  3. 
+. }
+(note: variable syear was long, now double to accommodate using data's values)
+
+. 
+. save    "./Data_merge/kind_ex.dta", replace 
+file ./Data_merge/kind_ex.dta saved
+
+. 
+. *===============================================================================
+. * END PROGRAM
+. *===============================================================================
+. 
+. 
+. 
+. 
+end of do-file
+
+. 
+. *===============================================================================
+. * SF12 Health Information - Subdofile 
+. *===============================================================================
+. 
+. do                      ./01_02_SOEP_QALY_extract_sf12survey.do
+
+. *===============================================================================
+. /*      
+> Extract: The Value of Health Paper - German SOEP: SF-12 Questionnaires
+> 
+> Last Edit:      12.03.2021 10:46                        
+>                         
+> Authors:        Sebastian Himmler (himmler@eshpm.eur.nl)
+>                         Jannis Stöckel (stockel@eshpm.eur.nl)
+> 
+> Outline:        This dofile extracts the variables of interest from the differen SOEP
+>                         long-format datasets as released in v35 to calculate the SF-6D health
+>                         utilities.
+>                  
+> Input:          SOEP datasets of SF12 health questionnaires (separate by year) and the
+>                         cross-year long-format health-related variables. 
+>                         - health.dta, consistent items cross-year file 
+>                         - sp.dta (2002) to bip.dta (2018), individual-level response by year
+>                         
+> Output:         Datasets with calculated SF-6D utilities following UK and NL Tariff 
+>                         based scoring.
+>                         - sf12waves.dta, health questionnaire responses cross-year 
+>                         - SOEP_final_utilities_UK.dta and SOEP_final_utilities_NL.dta
+> */
+. *===============================================================================
+. 
+. *===============================================================================
+. * BEGIN PROGRAMME
+. *===============================================================================
+. 
+. *===============================================================================
+. * Harmonize variable naming for different year-files
+. *===============================================================================
+. 
+. * Year 2002
+. use             "./Data_source/sf12health/source/sp.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. keep pid syear sp8907 sp8908 sp88 sp8902
+
+. 
+. rename sp8907 sf5       
+
+. rename sp8908 sf6
+
+. rename sp88   sf2
+
+. rename sp8902 sf11
+
+. 
+. save            "./Data_source/sf12health/w2002.dta", replace 
+file ./Data_source/sf12health/w2002.dta saved
+
+. 
+. * Year 2004
+. use             "./Data_source/sf12health/source/up.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+.  
+. keep pid syear up8607 up8608 up85 up8602
+
+. 
+. rename up8607 sf5
+
+. rename up8608 sf6
+
+. rename up85   sf2
+
+. rename up8602 sf11
+
+. 
+. save            "./Data_source/sf12health/w2004.dta", replace 
+file ./Data_source/sf12health/w2004.dta saved
+
+. 
+. * Year 2006
+. use             "./Data_source/sf12health/source/wp.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+.  
+. keep pid syear wp9007 wp9008 wp89 wp9002
+
+. 
+. rename wp9007 sf5
+
+. rename wp9008 sf6
+
+. rename wp89   sf2
+
+. rename wp9002 sf11
+
+. 
+. save            "./Data_source/sf12health/w2006.dta", replace 
+file ./Data_source/sf12health/w2006.dta saved
+
+. 
+. * Year 2008
+. use             "./Data_source/sf12health/source/yp.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+.  
+. keep pid syear yp10207 yp10208 yp101 yp10202
+
+. 
+. rename yp10207  sf5
+
+. rename yp10208  sf6
+
+. rename yp101    sf2
+
+. rename yp10202  sf11
+
+. 
+. save            "./Data_source/sf12health/w2008.dta", replace 
+file ./Data_source/sf12health/w2008.dta saved
+
+. 
+. * Year 2010
+. use             "./Data_source/sf12health/source/bap.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+.  
+. keep pid syear bap9007 bap9008 bap89 bap9002
+
+. 
+. rename bap9007  sf5
+
+. rename bap9008  sf6
+
+. rename bap89    sf2
+
+. rename bap9002  sf11
+
+.         
+. save            "./Data_source/sf12health/w2010.dta", replace 
+file ./Data_source/sf12health/w2010.dta saved
+
+. 
+. * Year 2012
+. use             "./Data_source/sf12health/source/bcp.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. keep pid syear bcp9407 bcp9408 bcp93 bcp9402
+
+. 
+. rename bcp9407 sf5
+
+. rename bcp9408 sf6
+
+. rename bcp93   sf2
+
+. rename bcp9402 sf11
+
+. 
+. save            "./Data_source/sf12health/w2012.dta", replace 
+file ./Data_source/sf12health/w2012.dta saved
+
+. 
+. * Year 2014
+. use             "./Data_source/sf12health/source/bep.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. keep pid syear bep9207 bep9208 bep91 bep9202
+
+. 
+. rename bep9207  sf5
+
+. rename bep9208  sf6
+
+. rename bep91    sf2
+
+. rename bep9202  sf11
+
+. 
+. save            "./Data_source/sf12health/w2014.dta", replace 
+file ./Data_source/sf12health/w2014.dta saved
+
+. 
+. * Year 2016
+. use             "./Data_source/sf12health/source/bgp.dta", replace 
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. keep pid syear bgp10807 bgp10808 bgp107 bgp10802
+
+. 
+. rename bgp10807  sf5
+
+. rename bgp10808  sf6
+
+. rename bgp107    sf2
+
+. rename bgp10802  sf11
+
+. 
+. save            "./Data_source/sf12health/w2016.dta", replace 
+file ./Data_source/sf12health/w2016.dta saved
+
+. 
+. * Year 2018
+. use             "./Data_source/sf12health/source/bip.dta", replace
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. keep pid syear bip_137_07 bip_137_08 bip_137_02 bip_136
+
+. 
+. rename bip_137_07 sf5
+
+. rename bip_137_08 sf6
+
+. rename bip_136    sf2
+
+. rename bip_137_02 sf11
+
+. 
+. * Append with information from 2002/4/6/8/10/12/14/16
+. foreach x of numlist 2002 2004 2006 2008 2010 2012 2014 2016 {
+  2. 
+.         append  using   "./Data_source/sf12health/w`x'"
+  3. 
+. } 
+
+. 
+. save            "./Data_source/sf12health/sf12waves.dta", replace 
+file ./Data_source/sf12health/sf12waves.dta saved
+
+. 
+. *===============================================================================
+. * Combine complete SF12 Questionnaire Information and Calculate Tariffs
+. *===============================================================================
+. 
+. *-------------------------------------------------------------------------------
+. * Extract Variables: SF-12 Results & General Health Questionnaire
+. *-------------------------------------------------------------------------------
+. 
+. * Extract base variables from separate datasets
+. use             "./Data_source/health.dta", replace
+(SOEP-Core, v35, doi:10.5684/soep-core.v35)
+
+. 
+. keep    syear pid bp_nbs vt_nbs sf_nbs valid mcs pcs
+
+. 
+. rename          bp_nbs sf8
+
+. rename          vt_nbs sf10             
+
+. rename          sf_nbs sf12
+
+. 
+. * Merge with remaining sf12 questionnaire items 
+. merge 1:1       pid syear using "./Data_source/sf12health/sf12waves.dta"
+(note: variable syear was long, now double to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       459,417
+        from master                   459,417  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                           229,543  (_merge==3)
+    -----------------------------------------
+
+. keep            if _merge==3
+(459,417 observations deleted)
+
+. drop            _merge 
+
+. 
+. *-------------------------------------------------------------------------------
+. * Recoding of variables with numerical answers
+. *-------------------------------------------------------------------------------
+. replace sf8 = 1         if sf8<24 & sf8>23
+(5,444 real changes made)
+
+. replace sf8 = 2         if sf8<33 & sf8>32
+(22,205 real changes made)
+
+. replace sf8 = 3         if sf8<42 & sf8>41
+(43,114 real changes made)
+
+. replace sf8 = 4         if sf8<51 & sf8>50
+(56,628 real changes made)
+
+. replace sf8 = 5         if sf8<60 & sf8>59
+(81,056 real changes made)
+
+. 
+. replace sf10 = 1        if sf10<27 & sf10>26
+(10,265 real changes made)
+
+. replace sf10 = 2        if sf10<38 & sf10>37
+(37,290 real changes made)
+
+. replace sf10 = 3        if sf10<49 & sf10>48
+(90,677 real changes made)
+
+. replace sf10 = 4        if sf10<60 & sf10>59
+(61,277 real changes made)
+
+. replace sf10 = 5        if sf10<71 & sf10>70
+(8,938 real changes made)
+
+. 
+. replace sf12 = 1        if sf12<15 & sf12>14
+(2,295 real changes made)
+
+. replace sf12 = 2        if sf12<26 & sf12>25
+(10,340 real changes made)
+
+. replace sf12 = 3        if sf12<36 & sf12>35
+(27,894 real changes made)
+
+. replace sf12 = 4        if sf12<47 & sf12>46
+(42,502 real changes made)
+
+. replace sf12 = 5        if sf12<58 & sf12>57
+(125,416 real changes made)
+
+. 
+. *-------------------------------------------------------------------------------
+. * Preparing data 
+. *-------------------------------------------------------------------------------
+. 
+. gen sf22 =.
+(229,543 missing values generated)
+
+. recode sf22 (.=1) if sf2 ==1
+(sf22: 29131 changes made)
+
+. recode sf22 (.=2) if sf2 ==2
+(sf22: 73430 changes made)
+
+. recode sf22 (.=3) if sf2 ==3
+(sf22: 111137 changes made)
+
+. 
+. drop sf2
+
+. ren sf22 sf2
+
+. 
+. gen sf112 =.
+(229,543 missing values generated)
+
+. recode sf112 (.=1) if sf11 ==1
+(sf112: 3262 changes made)
+
+. recode sf112 (.=2) if sf11 ==2
+(sf112: 26227 changes made)
+
+. recode sf112 (.=3) if sf11 ==3
+(sf112: 70046 changes made)
+
+. recode sf112 (.=4) if sf11 ==4
+(sf112: 69148 changes made)
+
+. recode sf112 (.=5) if sf11 ==5
+(sf112: 44748 changes made)
+
+. 
+. drop sf11
+
+. ren sf112 sf11
+
+. 
+. gen sf52 =.
+(229,543 missing values generated)
+
+. recode sf52 (.=1) if sf5 ==1
+(sf52: 6658 changes made)
+
+. recode sf52 (.=2) if sf5 ==2
+(sf52: 18638 changes made)
+
+. recode sf52 (.=3) if sf5 ==3
+(sf52: 42017 changes made)
+
+. recode sf52 (.=4) if sf5 ==4
+(sf52: 49840 changes made)
+
+. recode sf52 (.=5) if sf5 ==5
+(sf52: 94853 changes made)
+
+. 
+. drop sf5
+
+. ren sf52 sf5
+
+. 
+. gen sf62 =.
+(229,543 missing values generated)
+
+. recode sf62 (.=1) if sf6 ==1
+(sf62: 2499 changes made)
+
+. recode sf62 (.=2) if sf6 ==2
+(sf62: 12017 changes made)
+
+. recode sf62 (.=3) if sf6 ==3
+(sf62: 33090 changes made)
+
+. recode sf62 (.=4) if sf6 ==4
+(sf62: 47989 changes made)
+
+. recode sf62 (.=5) if sf6 ==5
+(sf62: 116915 changes made)
+
+. 
+. drop sf6
+
+. ren sf62 sf6
+
+. 
+. label variable sf8 "bodily pain - 5 lowest"
+
+. label variable sf10 "vitality - 5 best"
+
+. label variable sf11 "mental health - 5 best"
+
+. label variable sf12 "social functioning - 5 best"
+
+. label variable sf5 "role limitations physical - 5 best"
+
+. label variable sf6 "role limitations emotional - 5 best"
+
+. label variable sf2 "physical functioning - 3 best"
+
+. 
+. *Physical functioning dimension*
+. *scsf2a
+. 
+. gen SFPhys = .
+(229,543 missing values generated)
+
+. recode SFPhys (.=1) if sf2 ==3
+(SFPhys: 111137 changes made)
+
+. recode SFPhys (.=2) if sf2 ==2
+(SFPhys: 73430 changes made)
+
+. recode SFPhys (.=3) if sf2 ==1
+(SFPhys: 29131 changes made)
+
+. 
+. *Role limitations dimension*
+. 
+. //health and mental
+. *scsf3b scsf4a
+. gen SFRole = .
+(229,543 missing values generated)
+
+. 
+. recode SFRole (.=1) if sf5 ==5 & sf6 ==5
+(SFRole: 79275 changes made)
+
+. recode SFRole (.=2) if inrange(sf5, 1, 4) & sf6 ==5
+(SFRole: 37318 changes made)
+
+. recode SFRole (.=3) if inrange(sf6, 1, 4) & sf5 ==5
+(SFRole: 15438 changes made)
+
+. recode SFRole (.=4) if inrange(sf5, 1, 4) & inrange(sf6, 1, 4)
+(SFRole: 79420 changes made)
+
+. 
+. *Social functioning dimension*
+. gen SFSocial = .
+(229,543 missing values generated)
+
+. 
+. recode SFSocial (.=1) if sf12 ==5
+(SFSocial: 125416 changes made)
+
+. recode SFSocial (.=2) if sf12 ==4
+(SFSocial: 42502 changes made)
+
+. recode SFSocial (.=3) if sf12 ==3
+(SFSocial: 27894 changes made)
+
+. recode SFSocial (.=4) if sf12 ==2
+(SFSocial: 10340 changes made)
+
+. recode SFSocial (.=5) if sf12 ==1
+(SFSocial: 2295 changes made)
+
+. 
+. *Bodily pain dimension*
+. gen SFPain = .
+(229,543 missing values generated)
+
+. 
+. recode SFPain (.=1) if sf8 ==5
+(SFPain: 81056 changes made)
+
+. recode SFPain (.=2) if sf8 ==4
+(SFPain: 56628 changes made)
+
+. recode SFPain (.=3) if sf8 ==3
+(SFPain: 43114 changes made)
+
+. recode SFPain (.=4) if sf8 ==2
+(SFPain: 22205 changes made)
+
+. recode SFPain (.=5) if sf8 ==1
+(SFPain: 5444 changes made)
+
+. 
+. *Mental health dimension*
+. gen SFMental = .
+(229,543 missing values generated)
+
+. 
+. recode SFMental (.=1) if sf11 ==5
+(SFMental: 44748 changes made)
+
+. recode SFMental (.=2) if sf11 ==4
+(SFMental: 69148 changes made)
+
+. recode SFMental (.=3) if sf11 ==3
+(SFMental: 70046 changes made)
+
+. recode SFMental (.=4) if sf11 ==2
+(SFMental: 26227 changes made)
+
+. recode SFMental (.=5) if sf11 ==1
+(SFMental: 3262 changes made)
+
+. 
+. 
+. *Vitality dimension*
+. gen SFVital = .
+(229,543 missing values generated)
+
+. 
+. recode SFVital (.=1) if sf10 ==5
+(SFVital: 8938 changes made)
+
+. recode SFVital (.=2) if sf10 ==4
+(SFVital: 61277 changes made)
+
+. recode SFVital (.=3) if sf10 ==3
+(SFVital: 90677 changes made)
+
+. recode SFVital (.=4) if sf10 ==2
+(SFVital: 37290 changes made)
+
+. recode SFVital (.=5) if sf10 ==1
+(SFVital: 10265 changes made)
+
+. 
+. *Most category
+. /*
+> gen most = .
+> recode most (.=1) if SFPhys ==3
+> recode most (.=1) if SFRole ==3 | SFRole ==4
+> recode most (.=1) if SFSocial ==4 | SFSocial ==5
+> recode most (.=1) if SFPain ==4 | SFPain ==5
+> recode most (.=1) if SFMental ==4 | SFMental ==5
+> recode most (.=1) if SFVital ==4 | SFVital ==5
+> */
+. 
+. *===============================================================================
+. * Dutch tariff
+. *===============================================================================
+. 
+. preserve
+
+. 
+. *Weights from:
+. *Jonker, M. F., Donkers, B., de Bekker-Grob, E. W., & Stolk, E. A. (2018). 
+. *Advocating a Paradigm Shift in Health-State Valuations: The Estimation of 
+. *Time-Preference Corrected QALY Tariffs. Value in Health, 21(8), 993–1001. doi:10.1016/j.jval.2018.01.016
+. *Hyperbolic, table 3, column 4
+. 
+. gen pf1 = 0
+
+. recode pf1 (0=-0.05) if SFPhys ==2
+(pf1: 73430 changes made)
+
+. recode pf1 (0=-0.21) if SFPhys ==3
+(pf1: 29131 changes made)
+
+. 
+. gen rll = 0
+
+. recode rll (0=-0.09) if SFRole ==2
+(rll: 37318 changes made)
+
+. recode rll (0=-0.11) if SFRole ==3
+(rll: 15438 changes made)
+
+. recode rll (0=-0.19) if SFRole ==4
+(rll: 79420 changes made)
+
+. 
+. gen scl = 0
+
+. recode scl (0=-0.03) if SFSocial ==2
+(scl: 42502 changes made)
+
+. recode scl (0=-0.05) if SFSocial ==3
+(scl: 27894 changes made)
+
+. recode scl (0=-0.12) if SFSocial ==4
+(scl: 10340 changes made)
+
+. recode scl (0=-0.20) if SFSocial ==5
+(scl: 2295 changes made)
+
+. 
+. gen pnl = 0
+
+. recode pnl (0=-0.06) if SFPain ==2
+(pnl: 56628 changes made)
+
+. recode pnl (0=-0.18) if SFPain ==3
+(pnl: 43114 changes made)
+
+. recode pnl (0=-0.25) if SFPain ==4
+(pnl: 22205 changes made)
+
+. recode pnl (0=-0.42) if SFPain ==5
+(pnl: 5444 changes made)
+
+. 
+. 
+. gen mhl = 0
+
+. recode mhl (0=-0.06) if SFMental ==2
+(mhl: 69148 changes made)
+
+. recode mhl (0=-0.11) if SFMental ==3
+(mhl: 70046 changes made)
+
+. recode mhl (0=-0.25) if SFMental ==4
+(mhl: 26227 changes made)
+
+. recode mhl (0=-0.39) if SFMental ==5
+(mhl: 3262 changes made)
+
+. 
+. gen vl = 0
+
+. recode vl (0=-0.04) if SFVital ==2
+(vl: 61277 changes made)
+
+. recode vl (0=-0.08) if SFVital ==3
+(vl: 90677 changes made)
+
+. recode vl (0=-0.15) if SFVital ==4
+(vl: 37290 changes made)
+
+. recode vl (0=-0.21) if SFVital ==5
+(vl: 10265 changes made)
+
+. 
+. 
+. *gen mstl =0
+. *recode mstl (0=-0.077) if most ==1
+. 
+. //SF6D utility index
+. gen flag_missing =0
+
+. recode flag_missing (0=1) if sf8 <1
+(flag_missing: 21096 changes made)
+
+. recode flag_missing (0=1) if sf10 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf12 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf2 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf11 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf5 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf6 <1
+(flag_missing: 0 changes made)
+
+. 
+. gen SF12ind =.
+(229,543 missing values generated)
+
+. replace SF12ind = (1 + pf1 + rll + scl + pnl + mhl + vl) if flag_missing !=1
+(208,447 real changes made)
+
+. 
+. rename SF12ind sf12ind_NL
+
+. keep pid syear sf12ind_NL valid mcs pcs
+
+. 
+. save "./Data_source/SOEP_final_utilities_NL.dta", replace
+file ./Data_source/SOEP_final_utilities_NL.dta saved
+
+. 
+. restore
+
+. 
+. *===============================================================================
+. * UK tariff
+. *===============================================================================
+. 
+. *Most category
+. gen most = .
+(229,543 missing values generated)
+
+. recode most (.=1) if SFPhys ==3
+(most: 29131 changes made)
+
+. recode most (.=1) if SFRole ==3 | SFRole ==4
+(most: 75014 changes made)
+
+. recode most (.=1) if SFSocial ==4 | SFSocial ==5
+(most: 599 changes made)
+
+. recode most (.=1) if SFPain ==4 | SFPain ==5
+(most: 4357 changes made)
+
+. recode most (.=1) if SFMental ==4 | SFMental ==5
+(most: 4434 changes made)
+
+. recode most (.=1) if SFVital ==4 | SFVital ==5
+(most: 10605 changes made)
+
+. 
+. *Weighting of domain scores from Brazier JE, Roberts JR, (2004) The estimation of a preference-based index from the SF
+> -12. Medical Care, 42: 851-859.*;
+. 
+. gen pf1 = 0
+
+. recode pf1 (0=-0.045) if SFPhys ==3
+(pf1: 29131 changes made)
+
+. 
+. gen rll = 0
+
+. recode rll (0=-0.063) if inrange(SFRole, 2, 4)
+(rll: 132176 changes made)
+
+. 
+. gen scl = 0
+
+. recode scl (0=-0.063) if SFSocial ==2
+(scl: 42502 changes made)
+
+. recode scl (0=-0.066) if SFSocial ==3
+(scl: 27894 changes made)
+
+. recode scl (0=-0.081) if SFSocial ==4
+(scl: 10340 changes made)
+
+. recode scl (0=-0.093) if SFSocial ==5
+(scl: 2295 changes made)
+
+. 
+. gen pnl = 0
+
+. recode pnl (0=-0.042) if SFPain ==3
+(pnl: 43114 changes made)
+
+. recode pnl (0=-0.077) if SFPain ==4
+(pnl: 22205 changes made)
+
+. recode pnl (0=-0.137) if SFPain ==5
+(pnl: 5444 changes made)
+
+. 
+. gen mhl = 0
+
+. recode mhl (0=-0.059) if SFMental ==2 | SFMental ==3
+(mhl: 139194 changes made)
+
+. recode mhl (0=-0.113) if SFMental ==4
+(mhl: 26227 changes made)
+
+. recode mhl (0=-0.134) if SFMental ==5
+(mhl: 3262 changes made)
+
+. 
+. gen vl = 0
+
+. recode vl (0=-0.078) if inrange(SFVital, 2, 4)
+(vl: 189244 changes made)
+
+. recode vl (0=-0.106) if SFVital ==5
+(vl: 10265 changes made)
+
+. 
+. gen mstl =0
+
+. recode mstl (0=-0.077) if most ==1
+(mstl: 124140 changes made)
+
+. 
+. //SF6D utility index
+. gen flag_missing =0
+
+. recode flag_missing (0=1) if sf8 <1
+(flag_missing: 21096 changes made)
+
+. recode flag_missing (0=1) if sf10 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf12 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf2 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf11 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf5 <1
+(flag_missing: 0 changes made)
+
+. recode flag_missing (0=1) if sf6 <1
+(flag_missing: 0 changes made)
+
+. 
+. gen SF12ind =.
+(229,543 missing values generated)
+
+. replace SF12ind = (1 + pf1 + rll + scl + pnl + mhl + vl+ mstl) if flag_missing !=1
+(208,447 real changes made)
+
+. rename SF12ind  sf12ind_UK
+
+. keep pid syear  sf12ind_UK SFPhys SFRole SFSocial SFPain SFMental SFVital valid mcs pcs
+
+. 
+. save "./Data_source/SOEP_final_utilities_UK.dta", replace
+file ./Data_source/SOEP_final_utilities_UK.dta saved
+
+. *===============================================================================
+. * END PROGRAMME
+. *===============================================================================
+. 
+end of do-file
+
+. 
+. *===============================================================================
+. * END PROGRAM
+. *===============================================================================
+. capture log close

@@ -1,0 +1,29 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{6}{lllllll}}
+\hline\hline
+                    &\multicolumn{2}{c}{\textbf{Baseline}}      &\multicolumn{2}{c}{\textbf{Good Health}}   &\multicolumn{2}{c}{\textbf{Bad Health}}    \\\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+                    &\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}\\
+\hline
+\\ Income in 1000's &        0.07\sym{***}&        0.17\sym{**} &        0.05\sym{***}&        0.11         &        0.08\sym{**} &        0.32         \\
+                    &      (0.01)         &      (0.07)         &      (0.02)         &      (0.08)         &      (0.04)         &      (0.24)         \\
+[1em]
+Income in 1000's $(t-1)$&        0.03\sym{**} &        0.02         &        0.03\sym{**} &        0.05         &        0.03         &        0.05         \\
+                    &      (0.01)         &      (0.06)         &      (0.01)         &      (0.06)         &      (0.03)         &      (0.17)         \\
+[1em]
+SF-6D utility       &        3.62\sym{***}&        3.60\sym{***}&        2.51\sym{***}&        2.50\sym{***}&        4.10\sym{***}&        4.03\sym{***}\\
+                    &      (0.11)         &      (0.09)         &      (0.14)         &      (0.12)         &      (0.38)         &      (0.37)         \\
+[1em]
+SF-6D utility $(t-1)$&        0.10         &        0.11         &        0.12         &        0.12         &        0.32         &        0.32         \\
+                    &      (0.10)         &      (0.10)         &      (0.12)         &      (0.11)         &      (0.26)         &      (0.27)         \\
+\hline
+\\ \textbf{Model statistics}&                     &                     &                     &                     &                     &                     \\
+\hline \\ Cragg-Donald&                     &       620.7         &                     &       425.1         &                     &        95.9         \\
+Anderson            &                     &     1,208.4         &                     &       828.1         &                     &       188.4         \\
+Endogeneity test    &                     &         3.0         &                     &         1.8         &                     &         1.0         \\
+\\ BIC              &     150,481         &     150,558         &     102,463         &     102,497         &      37,832         &      37,899         \\
+Observations        &      48,861         &      48,861         &      35,401         &      35,401         &      13,460         &      13,460         \\
+\hline \\ \textbf{CIV in \EUR{}} &      39,482         &      20,377         &      33,336         &      16,532         &      38,374         &      11,779         \\
+\hline\hline
+\end{tabular}
+}

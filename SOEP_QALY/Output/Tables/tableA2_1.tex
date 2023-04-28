@@ -1,0 +1,29 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{10}{lllllll}}
+\hline\hline
+                    &\multicolumn{2}{c}{\textbf{Baseline}}      &\multicolumn{2}{c}{\textbf{Age$<$50}}      &\multicolumn{2}{c}{\textbf{Age$\geq$50}}   &\multicolumn{2}{c}{\textbf{Male}}          &\multicolumn{2}{c}{\textbf{Female}}        \\\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+                    &\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{IV}\\
+\hline
+\\ Income in 1000's &        0.05\sym{***}&        0.10\sym{***}&        0.07\sym{***}&       -0.01         &        0.03\sym{***}&        0.21\sym{***}&        0.04\sym{***}&        0.02         &        0.05\sym{***}&        0.20\sym{***}\\
+                    &      (0.01)         &      (0.03)         &      (0.01)         &      (0.05)         &      (0.01)         &      (0.05)         &      (0.01)         &      (0.04)         &      (0.01)         &      (0.05)         \\
+[1em]
+Income in 1000's $(t-1)$&        0.01         &        0.04         &        0.02\sym{**} &        0.14\sym{***}&        0.00         &       -0.06         &        0.01\sym{*}  &        0.06\sym{*}  &        0.00         &        0.02         \\
+                    &      (0.01)         &      (0.03)         &      (0.01)         &      (0.04)         &      (0.01)         &      (0.04)         &      (0.01)         &      (0.04)         &      (0.01)         &      (0.04)         \\
+[1em]
+SF-6D utility       &        3.12\sym{***}&        3.12\sym{***}&        2.99\sym{***}&        3.00\sym{***}&        3.17\sym{***}&        3.16\sym{***}&        3.01\sym{***}&        3.01\sym{***}&        3.21\sym{***}&        3.21\sym{***}\\
+                    &      (0.06)         &      (0.05)         &      (0.10)         &      (0.09)         &      (0.08)         &      (0.08)         &      (0.09)         &      (0.09)         &      (0.09)         &      (0.08)         \\
+[1em]
+SF-6D utility $(t-1)$&        0.10\sym{*}  &        0.10\sym{*}  &        0.04         &        0.03         &        0.09         &        0.10         &        0.05         &        0.05         &        0.16\sym{*}  &        0.14\sym{*}  \\
+                    &      (0.06)         &      (0.05)         &      (0.09)         &      (0.09)         &      (0.08)         &      (0.08)         &      (0.09)         &      (0.08)         &      (0.08)         &      (0.08)         \\
+\hline
+\\ \textbf{Model statistics}&                     &                     &                     &                     &                     &                     &                     &                     &                     &                     \\
+\hline \\ Cragg-Donald&                     &     1,863.7         &                     &       661.1         &                     &       265.5         &                     &       513.5         &                     &       398.7         \\
+Anderson            &                     &     3,642.0         &                     &     1,179.4         &                     &       504.9         &                     &       929.8         &                     &       747.1         \\
+Endogeneity test    &                     &        10.0         &                     &        11.5         &                     &        14.5         &                     &         1.8         &                     &        16.0         \\
+\\ BIC              &     540,755         &     540,995         &     223,269         &     223,623         &     307,453         &     308,339         &     247,607         &     247,666         &     293,222         &     293,723         \\
+Observations        &     186,902         &     186,902         &      80,324         &      80,324         &     105,231         &     105,231         &      87,192         &      87,192         &      99,710         &      99,710         \\
+\hline \\ \textbf{CIV in \EUR{}} &      58,533         &      22,717         &      34,691         &      23,814         &      98,518         &      21,193         &      52,956         &      36,397         &      61,947         &      15,335         \\
+\hline\hline
+\end{tabular}
+}
